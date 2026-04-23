@@ -1,0 +1,738 @@
+{
+  "name": "PortNet SH Code Lookup Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1060,
+        120
+      ],
+      "id": "c5a270b0-1335-4d08-98ad-59547c8f5f76",
+      "name": "Telegram Trigger",
+      "webhookId": "f32ab3bb-295a-4080-9ab2-2661e97c377a",
+      "credentials": {
+        "telegramApi": {
+          "id": "0C3SdmmF8l4bp9Vm",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.resultat }}",
+        "replyMarkup": "=",
+        "forceReply": {},
+        "replyKeyboardOptions": {},
+        "replyKeyboardRemove": {},
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1180,
+        740
+      ],
+      "id": "189ec6e1-59cd-465f-aaba-3e5cf441d3be",
+      "name": "Telegram2",
+      "webhookId": "616fd551-ad30-472d-9240-b313cefdf43a",
+      "credentials": {
+        "telegramApi": {
+          "id": "0C3SdmmF8l4bp9Vm",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import string\nitem = items[0]\nid_session = item['json']['message']['from']['id']\nmessage = item['json']['message']['text']\nif message.isdigit() : \n  contenu = 0\nelif all(all(char.isalpha() or char in string.punctuation for char in word ) for word in message.split()):\n  contenu = 1\nelse : \n  contenu = 2\n\nreturn [{\n    \"json\": {\n        \"code_sh\": message,\n        \"type\": contenu,\n        \"sessionId\": id_session,\n    }\n}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -280,
+        100
+      ],
+      "id": "ad4ec1e5-7579-4696-b479-bbd66fc4f4fb",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4d58ca45-1354-4dfe-a83b-9a79f5f929eb",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -40,
+        380
+      ],
+      "id": "421e8db3-a852-43f6-9d25-bafd00aa6925",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "41f5d315-dcd1-4747-9249-b29ed6fec3e2",
+              "leftValue": "={{ $('Code').item.json.type }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -320,
+        780
+      ],
+      "id": "8bfadfbf-c7de-4d85-ad2b-0b704d4589c6",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Donnez un code SH ou le nom du produit",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -380,
+        1000
+      ],
+      "id": "2198498a-974f-4436-b518-6e71d2572350",
+      "name": "Telegram",
+      "webhookId": "34a62d0f-1c9a-4915-af95-211ac279e0de",
+      "credentials": {
+        "telegramApi": {
+          "id": "0C3SdmmF8l4bp9Vm",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=extrait le nom du produit dans ce message :{{ $json.code_sh }} \n(ex : texte recu : comment importer des avocats du mexiques ? texte a renvoyer : avocats du mexiques ) \nPuis renvoi moi le code sh de ce produit ou des produit qui sont simillaire (exemple : \"comment faire pour importer de la viande de porc ?\" reponses sous la suivante: \n0203110090/0203120090/0206300099/0206490091\n\nà partir de tes données\n",
+        "options": {
+          "systemMessage": "tu es un assistant français qui recherche et donne des réponses selon sa base de données et qui renvoie que le code SH et ne fait pas de phrase a part le code SH"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        240,
+        1300
+      ],
+      "id": "7819314b-d779-4780-a545-b21a2f185d97",
+      "name": "AI Agent4"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4-1106-preview",
+          "mode": "list",
+          "cachedResultName": "gpt-4-1106-preview"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        180,
+        1500
+      ],
+      "id": "fc4d2f9c-375e-4c05-bdc9-70d0c23f4c14",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": "2aVtaE8h9bDKjrLd",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        300,
+        1560
+      ],
+      "id": "f833ed65-4f81-4886-b909-328e0625a0bf",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "Code SH"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1.1,
+      "position": [
+        420,
+        1520
+      ],
+      "id": "74d0a44b-55b5-4708-8dfc-73209fd793fa",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "n8ntest",
+          "mode": "list",
+          "cachedResultName": "n8ntest"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.1,
+      "position": [
+        280,
+        1740
+      ],
+      "id": "9b5c38ea-07e8-494f-8d86-32dd08afffe6",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "jvo2uZUMfTBCgw2z",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "chatgpt-4o-latest"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        600,
+        1720
+      ],
+      "id": "9c06b988-f5b6-4db5-890b-ea62c9bb0996",
+      "name": "OpenAI Chat Model6",
+      "credentials": {
+        "openAiApi": {
+          "id": "2aVtaE8h9bDKjrLd",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        1900
+      ],
+      "id": "10ac2512-8e61-4a13-bbf7-7136352cb0e5",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "2aVtaE8h9bDKjrLd",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.resultat }}",
+        "replyMarkup": "=",
+        "forceReply": {},
+        "replyKeyboardOptions": {},
+        "replyKeyboardRemove": {},
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1180,
+        920
+      ],
+      "id": "c4f1fcba-22e4-46b9-9d1d-b6e141cd923d",
+      "name": "Telegram3",
+      "webhookId": "616fd551-ad30-472d-9240-b313cefdf43a",
+      "credentials": {
+        "telegramApi": {
+          "id": "0C3SdmmF8l4bp9Vm",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Identification du message ",
+        "height": 1120,
+        "width": 880,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1160,
+        40
+      ],
+      "id": "ba1d299d-444b-460e-bdc2-ef6283f4ed53",
+      "name": "Sticky Note",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "Exttraction du code SH : ",
+        "height": 820,
+        "width": 1240,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        1220
+      ],
+      "id": "96ccdcdd-b61c-4d24-9d98-18a75ba8ba37",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Extraction et traitements des données via le code SH",
+        "height": 360,
+        "width": 940,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        300
+      ],
+      "id": "0d86ae08-7988-460b-bc7e-250259c3d1f1",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import json\n\nitem = items[0]\nmessage = str(item['json']['output'])\nnew_message = message.split('/')\ndico = {} \nliste = []\nfor i in range(len(new_message))  : \n  dico = {} \n  dico[\"sh\"] = new_message[i]\n  liste.append(dico)\n\nreturn liste\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        1340
+      ],
+      "id": "9bdd5e65-eef8-435c-b6fa-c10cc819d33d",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_SUBWORKFLOW_ID",
+          "mode": "list",
+          "cachedResultName": "YOUR_SUBWORKFLOW_NAME"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "code_sh": "={{ $json.sh }}"
+          },
+          "matchingColumns": [
+            "code_sh"
+          ],
+          "schema": [
+            {
+              "id": "code_sh",
+              "displayName": "code_sh",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        940,
+        1300
+      ],
+      "id": "fd03c98d-e3e2-46e9-a30b-e171865f3eaf",
+      "name": "Execute Workflow"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_SUBWORKFLOW_ID",
+          "mode": "list",
+          "cachedResultName": "YOUR_SUBWORKFLOW_NAME"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "code_sh": "={{ $json.code_sh }}"
+          },
+          "matchingColumns": [
+            "code_sh"
+          ],
+          "schema": [
+            {
+              "id": "code_sh",
+              "displayName": "code_sh",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        420
+      ],
+      "id": "3d7f531b-c5e3-4348-90fe-bfbccc3451fc",
+      "name": "Execute Workflow1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "14abad87-fd84-4575-991b-1b29ee0ef9d1",
+              "leftValue": "={{ $json.message.from.last_name }}",
+              "rightValue": "YOUR_LAST_NAME",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -840,
+        120
+      ],
+      "id": "5087abc9-25f5-49c6-922d-ad759fff102b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "=Pas autorisé ",
+        "replyMarkup": "=",
+        "forceReply": {},
+        "replyKeyboardOptions": {},
+        "replyKeyboardRemove": {},
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -920,
+        380
+      ],
+      "id": "075bbd33-20cf-4b60-b51e-671971c13dd3",
+      "name": "Telegram4",
+      "webhookId": "616fd551-ad30-472d-9240-b313cefdf43a",
+      "credentials": {
+        "telegramApi": {
+          "id": "0C3SdmmF8l4bp9Vm",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent4": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow": {
+      "main": [
+        [
+          {
+            "node": "Telegram3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow1": {
+      "main": [
+        [
+          {
+            "node": "Telegram2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "YOUR_VERSION_ID",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_INSTANCE_ID"
+  },
+  "id": "YOUR_WORKFLOW_ID",
+  "tags": []
+}
