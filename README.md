@@ -1,6 +1,6 @@
 # PortNet SH Code Lookup Bot — n8n Workflow
 
-An intelligent Telegram chatbot built with n8n, OpenAI GPT-4, and Pinecone that allows users to query customs HS (Harmonized System) codes in real time. Developed and deployed during an internship at PortNet S.A., Morocco's national port logistics platform.
+An intelligent Telegram chatbot built with n8n, OpenAI GPT-4, and Pinecone that allows users to query customs HS (Harmonized System) codes in real time. Built as a working prototype during an internship at PortNet S.A., Morocco's national port logistics platform (May–June 2025).
 
 ---
 
@@ -25,7 +25,7 @@ Users send a message to a Telegram bot — either a product name (e.g. "avocats 
 | Workflow Automation | [n8n](https://n8n.io/) |
 | Messaging Interface | [Telegram Bot API](https://core.telegram.org/bots/api) |
 | AI Agent | [OpenAI GPT-4](https://platform.openai.com/) (via n8n LangChain nodes) |
-| Vector Database | [Pinecone](https://www.pinecone.io/) |
+| Vector Database | [Pinecone](https://www.pinecone.io/) (index built from a 13,300-row HS tariff dataset) |
 | Embeddings | OpenAI Embeddings |
 | Memory | n8n Buffer Window Memory |
 | Language | Python (custom classification node) |
